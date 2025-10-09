@@ -1,6 +1,7 @@
 //Program.cs
-using ABCRetailers.Services;
 using System.Globalization;
+using ABCRetailers.Services;
+using ABCRetailers.Services.FunctionsApi;
 namespace ABCRetailers
 {
     public class Program
@@ -12,8 +13,19 @@ namespace ABCRetailers
             // Add services to the container.
             builder.Services.AddControllersWithViews();
 
-            // Register Azure Storage Service
-            builder.Services.AddScoped<IAzureStorageService, AzureStorageService>();
+            // Configure HTTP client for Azure Functions API
+            //builder.Services.AddScoped<IAzureStorageService, AzureStorageService>();
+
+            builder.Services.AddHttpClient("Functions", (sp, client) =>
+            {
+                var cfg = sp.GetRequiredService<IConfiguration>();
+                var baseUrl = cfg["Functions:BaseUrl"] ?? "http://localhost:7071";
+                client.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/api/");
+                client.Timeout = TimeSpan.FromSeconds(100);
+            });
+
+            // Register the typed client (Functions API)
+            builder.Services.AddScoped<ABCRetailers.Services.FunctionsApi.IFunctionsApi, ABCRetailers.Services.FunctionsApi.FunctionsApiClient>();
 
             // Add logging
             builder.Services.AddLogging();

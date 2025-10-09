@@ -1,157 +1,124 @@
-﻿// Controllers/ProductController.cs
+﻿using ABCRetailers.Models.FunctionsDtos;
+using ABCRetailers.Services.FunctionsApi;
 using Microsoft.AspNetCore.Mvc;
-using ABCRetailers.Models;
-using ABCRetailers.Services;
 
 namespace ABCRetailers.Controllers
 {
     public class ProductController : Controller
     {
-
-        private readonly IAzureStorageService _storageService;
+        private readonly IFunctionsApi _api;
         private readonly ILogger<ProductController> _logger;
 
-
-        public ProductController(IAzureStorageService storageService, ILogger<ProductController> logger)
+        public ProductController(IFunctionsApi api, ILogger<ProductController> logger)
         {
-            _storageService = storageService;
+            _api = api;
             _logger = logger;
         }
+
+        // ----------------- Index -----------------
         public async Task<IActionResult> Index()
         {
-            var products = await _storageService.GetAllEntitiesAsync<Product>();
+            var products = await _api.GetProductsAsync(); // Returns List<ProductDto>
             return View(products);
         }
+
+        // ----------------- Create (GET) -----------------
         public IActionResult Create()
         {
             return View();
         }
 
+        // ----------------- Create (POST) -----------------
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Product product, IFormFile? imageFile)
+        public async Task<IActionResult> Create(CreateProductDto dto, IFormFile? imageFile)
         {
-            // Manual price parsing to fix binding issue
-            if (Request.Form.TryGetValue("Price", out var priceFormValue))
+            if (!ModelState.IsValid)
+                return View(dto);
+
+            try
             {
-                _logger.LogInformation("Raw price from form: '{PriceFormValue}'", priceFormValue.ToString());
+                // Create product via API
+                var productId = await _api.CreateProductAsync(dto);
 
-                if (double.TryParse(priceFormValue, out var parsedPrice))
+                // Upload image if provided
+                if (imageFile != null && imageFile.Length > 0)
                 {
-                    product.Price = parsedPrice;
-                    _logger.LogInformation("Successfully parsed price: {Price}", parsedPrice);
+                    await _api.UploadProofAsync(imageFile, productId, dto.ProductName);
                 }
-                else
-                {
-                    _logger.LogWarning("Failed to parse price: {PriceFormValue}", priceFormValue.ToString());
-                }
+
+                TempData["Success"] = $"Product '{dto.ProductName}' created successfully!";
+                return RedirectToAction(nameof(Index));
             }
-            _logger.LogInformation("Final product price: {Price}", product.Price);
-
-            if (ModelState.IsValid)
+            catch (Exception ex)
             {
-                try
-                {
-                    if (product.Price <= 0)
-                    {
-                        ModelState.AddModelError("Price", "Price must be greater than $0.00");
-                        return View(product);
-                    }
-
-                    // Upload image if provided
-                    if (imageFile != null && imageFile.Length > 0)
-                    {
-                        var imageUrl = await _storageService.UploadImageAsync(imageFile, "product-images");
-                        product.ImageUrl = imageUrl;
-                    }
-
-                    await _storageService.AddEntityAsync(product);
-                    TempData["Success"] = $"Product '{product.ProductName}' created successfully with price {product.Price:C}!";
-                    return RedirectToAction(nameof(Index));
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error creating product");
-                    ModelState.AddModelError("", $"Error creating product: {ex.Message}");
-                }
+                _logger.LogError(ex, "Error creating product");
+                ModelState.AddModelError("", $"Error creating product: {ex.Message}");
+                return View(dto);
             }
-            return View(product);
         }
 
+        // ----------------- Edit (GET) -----------------
         public async Task<IActionResult> Edit(string id)
         {
-            if (string.IsNullOrEmpty(id))
-            {
-                return NotFound();
-            }
+            if (string.IsNullOrEmpty(id)) return NotFound();
 
-            var product = await _storageService.GetEntityAsync<Product>("Product", id);
-            if (product == null)
-            {
-                return NotFound();
-            }
+            var product = await _api.GetProductAsync(id); // Returns ProductDto
+            if (product == null) return NotFound();
 
-            return View(product);
+            // Map ProductDto to UpdateProductDto
+            var updateDto = new UpdateProductDto
+            {
+                Id = product.Id,
+                ProductName = product.ProductName,
+                Description = product.Description,
+                Price = product.Price,
+                StockAvailable = product.StockAvailable,
+                ImageUrl = product.ImageUrl
+            };
+
+            return View(updateDto);
         }
 
+        // ----------------- Edit (POST) -----------------
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Product product, IFormFile? imageFile)
+        public async Task<IActionResult> Edit(UpdateProductDto updateDto, IFormFile? imageFile)
         {
-            // Manual price parsing for edit too
-            if (Request.Form.TryGetValue("Price", out var priceFormValue))
+            if (!ModelState.IsValid)
+                return View(updateDto);
+
+            try
             {
-                if (double.TryParse(priceFormValue, out var parsedPrice))
+                // Upload new image if provided
+                string? imageUrl = updateDto.ImageUrl;
+                if (imageFile != null && imageFile.Length > 0)
                 {
-                    product.Price = parsedPrice;
-                    _logger.LogInformation("Edit: Successfully parsed price: {Price}", parsedPrice);
+                    imageUrl = await _api.UploadProofAsync(imageFile, updateDto.Id, updateDto.ProductName);
                 }
-            }
 
-            if (ModelState.IsValid)
+                updateDto.ImageUrl = imageUrl;
+
+                await _api.UpdateProductAsync(updateDto.Id, updateDto);
+
+                TempData["Success"] = $"Product '{updateDto.ProductName}' updated successfully!";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
             {
-                try
-                {
-                    // Get the original product to preserve ETag
-                    var originalProduct = await _storageService.GetEntityAsync<Product>("Product", product.RowKey);
-                    if (originalProduct == null)
-                    {
-                        return NotFound();
-                    }
-
-
-                    // Update properties but keep the original ETag
-                    originalProduct.ProductName = product.ProductName;
-                    originalProduct.Description = product.Description;
-                    originalProduct.Price = product.Price;
-                    originalProduct.StockAvailable = product.StockAvailable;
-
-                    // Upload new image if provided
-                    if (imageFile != null && imageFile.Length > 0)
-                    {
-                        var imageUrl = await _storageService.UploadImageAsync(imageFile, "product-images");
-                        originalProduct.ImageUrl = imageUrl;
-                    }
-
-                    await _storageService.UpdateEntityAsync(originalProduct);
-                    TempData["Success"] = "Product updated successfully!";
-                    return RedirectToAction(nameof(Index));
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error updating product: {Message}", ex.Message);
-                    ModelState.AddModelError("", $"Error updating product: {ex.Message}");
-                }
+                _logger.LogError(ex, "Error updating product: {Message}", ex.Message);
+                ModelState.AddModelError("", $"Error updating product: {ex.Message}");
+                return View(updateDto);
             }
-            return View(product);
         }
 
+        // ----------------- Delete -----------------
         [HttpPost]
         public async Task<IActionResult> Delete(string id)
         {
             try
             {
-                await _storageService.DeleteEntityAsync<Product>("Product", id);
+                await _api.DeleteProductAsync(id);
                 TempData["Success"] = "Product deleted successfully!";
             }
             catch (Exception ex)
@@ -163,4 +130,3 @@ namespace ABCRetailers.Controllers
         }
     }
 }
-

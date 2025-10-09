@@ -1,65 +1,64 @@
-// Controllers/HomeController.cs
+﻿// Controllers/HomeController.cs
+using System.Diagnostics;
 using ABCRetailers.Models;
 using ABCRetailers.Models.ViewModels;
-using ABCRetailers.Services;
+using ABCRetailers.Services.FunctionsApi;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
+using ABCRetailers.Models.FunctionsDtos;
 
 namespace ABCRetailers.Controllers
 {
     public class HomeController : Controller
     {
+        private readonly IFunctionsApi _api;
+        private readonly ILogger<HomeController> _logger;
 
-        private readonly IAzureStorageService _storageService;
-
-        public HomeController(IAzureStorageService storageService)
+        public HomeController(IFunctionsApi api, ILogger<HomeController> logger)
         {
-            _storageService = storageService;
+            _api = api;
+            _logger = logger;
         }
 
+        // ---------------- Index ----------------
         public async Task<IActionResult> Index()
         {
-            var products = await _storageService.GetAllEntitiesAsync<Product>();
-            var customers = await _storageService.GetAllEntitiesAsync<Customer>();
-            var orders = await _storageService.GetAllEntitiesAsync<Order>();
-
-            var viewModel = new HomeViewModel
+            try
             {
-                FeaturedProducts = products.Take(5).ToList(),
-                ProductCount = products.Count,
-                CustomerCount = customers.Count,
-                OrderCount = orders.Count
-            };
+                var products = await _api.GetProductsAsync() ?? new List<ProductDto>();
+                var customers = await _api.GetCustomersAsync() ?? new List<CustomerDto>();
+                var orders = await _api.GetOrdersAsync() ?? new List<OrderDto>();
 
-            return View(viewModel);
+                var viewModelDto = new HomeViewModelDto
+                {
+                    FeaturedProducts = products.Take(5).ToList(),
+                    ProductCount = products.Count,
+                    CustomerCount = customers.Count,
+                    OrderCount = orders.Count
+                };
+
+                return View(viewModelDto); // ✅ now matches your view's @model
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading home dashboard.");
+                TempData["Error"] = "Failed to load dashboard data.";
+
+                // return empty DTO instead of old ViewModel
+                return View(new HomeViewModelDto());
+            }
         }
 
+        // ---------------- Privacy ----------------
         public IActionResult Privacy()
         {
             return View();
         }
 
-        [HttpPost]
-        public async Task<IActionResult> InitializeStorage()
-        {
-            try
-            {
-                // Force re-initialization of storage
-                await _storageService.GetAllEntitiesAsync<Customer>(); // This will trigger initialization
-                TempData["Success"] = "Azure Storage initialized successfully!";
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Failed to initialize storage: {ex.Message}";
-            }
-            return RedirectToAction(nameof(Index));
-        }
-
+        // ---------------- Error ----------------
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-           
         public IActionResult Error()
-        { 
-            return View(new ErrorViewModel { RequestId = Activity.Current?. Id ?? HttpContext.TraceIdentifier });
+        {
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
 }

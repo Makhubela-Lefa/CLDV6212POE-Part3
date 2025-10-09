@@ -3,4 +3,187 @@
 }
 <h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<div class="privacy-container">
+    <div class="privacy-header">
+        <h1>Privacy Policy</h1>
+        <div class="effective-date">
+            <strong>Effective Date:</strong> @((DateTime)ViewData["EffectiveDate"]).ToString("MMMM dd, yyyy")
+        </div>
+    </div>
+
+    <div class="privacy-intro">
+        <h2>Introduction</h2>
+        <p>
+            ABC Retailers is committed to protecting the privacy of our customers. This privacy
+            policy outlines how we collect, use, and protect your personal information when you
+            shop on our website.
+        </p>
+    </div>
+
+    <div class="privacy-section">
+        <h2>
+            <span class="section-icon">1</span>
+            Information We Collect
+        </h2>
+
+        <h3>1. Personal Information</h3>
+        <p>
+            We collect personal information such as your name, email address, phone number,
+            and shipping address when you create an account or make a purchase.
+        </p>
+
+        <h3>2. Payment Information</h3>
+        <p>
+            We collect payment information, such as credit card numbers, when you make a purchase.
+            All payment data is <span class="highlight">encrypted and securely processed</span>.
+        </p>
+
+        <h3>3. Browsing Information</h3>
+        <p>
+            We collect browsing information, such as your IP address, browser type, and device type,
+            when you visit our website to improve your shopping experience.
+        </p>
+    </div>
+
+    <div class="privacy-section">
+        <h2>
+            <span class="section-icon">2</span>
+            How We Use Your Information
+        </h2>
+
+        <ul>
+            <li>
+                <strong>Order Fulfillment:</strong> We use your personal and payment information
+                to process and fulfill your orders efficiently.
+            </li>
+            <li>
+                <strong>Communication:</strong> We use your contact information to communicate
+                with you about your orders, promotions, and other updates.
+            </li>
+            <li>
+                <strong>Marketing:</strong> We may use your information to send you marketing
+                emails and promotions, but you can opt-out at any time.
+            </li>
+            <li>
+                <strong>Analytics:</strong> We use browsing information to analyze website traffic
+                and improve our services.
+            </li>
+        </ul>
+    </div>
+
+    <div class="privacy-section">
+        <h2>
+            <span class="section-icon">3</span>
+            Information Sharing
+        </h2>
+
+        <h3>1. Service Providers</h3>
+        <p>
+            We share your information with trusted service providers, such as payment processors
+            and shipping companies, to fulfill your orders.
+        </p>
+
+        <h3>2. Business Partners</h3>
+        <p>
+            We may share your information with partners, such as affiliates, to offer you relevant
+            promotions and enhance your shopping experience.
+        </p>
+
+        <h3>3. Legal Requirements</h3>
+        <p>
+            We may disclose your information if required by law or to protect our rights and the
+            safety of our customers.
+        </p>
+    </div>
+
+    <div class="privacy-section">
+        <h2>
+            <span class="section-icon">4</span>
+            Security Measures
+        </h2>
+
+        <ul>
+            <li>
+                <strong>Encryption:</strong> We use industry-standard encryption to protect your
+                payment information during transmission.
+            </li>
+            <li>
+                <strong>Secure Servers:</strong> We store your personal information on secure servers
+                that are protected by firewalls and intrusion detection systems.
+            </li>
+            <li>
+                <strong>Access Control:</strong> We limit access to your information to authorized
+                personnel only who are bound by confidentiality agreements.
+            </li>
+        </ul>
+    </div>
+
+    <div class="privacy-section">
+        <h2>
+            <span class="section-icon">5</span>
+            Your Rights
+        </h2>
+
+        <ul>
+            <li>
+                <strong>Access:</strong> You can access and update your personal information by
+                logging into your account at any time.
+            </li>
+            <li>
+                <strong>Opt-out:</strong> You can opt-out of marketing emails by clicking on the
+                unsubscribe link in any promotional email.
+            </li>
+            <li>
+                <strong>Delete:</strong> You can request to delete your account and personal
+                information by contacting our support team.
+            </li>
+            <li>
+                <strong>Data Portability:</strong> You can request a copy of your personal data
+                in a structured, commonly used format.
+            </li>
+        </ul>
+    </div>
+
+    <div class="privacy-section">
+        <h2>
+            <span class="section-icon">6</span>
+            Third-Party Content
+        </h2>
+        <p>
+            Our website may include embedded content from third-party services (such as YouTube videos,
+            Google Maps, and Google Forms) using iframes. These services may collect data about your
+            interaction with their content according to their own privacy policies. We recommend
+            reviewing their privacy policies to understand how they handle your information.
+        </p>
+    </div>
+
+    <div class="privacy-section">
+        <h2>
+            <span class="section-icon">7</span>
+            Changes to This Policy
+        </h2>
+        <p>
+            We may update this policy from time to time to reflect changes in our practices or legal
+            requirements. We will notify you of any significant changes by posting the updated policy
+            on our website and updating the effective date. We encourage you to review this policy
+            periodically.
+        </p>
+    </div>
+
+    <div class="contact-box">
+        <h2>Contact Us</h2>
+        <p>
+            If you have any questions or concerns about this privacy policy, please contact us at:
+        </p>
+        <p>
+            <strong>Email:</strong> <a href="mailto:privacy@abcretailers.com">privacy@abcretailers.com</a><br />
+            <strong>Support:</strong> <a href="mailto:support@abcretailers.com">support@abcretailers.com</a>
+        </p>
+    </div>
+
+    <div class="consent-notice">
+        <p>
+            <strong>By shopping on our website, you agree to the terms of this privacy policy.</strong>
+        </p>
+    </div>
+</div>

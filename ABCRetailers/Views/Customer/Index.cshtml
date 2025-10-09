@@ -1,6 +1,5 @@
 ﻿@using System.Globalization
-<!-- Views/Customer/Index.cshtml -->
-@model IEnumerable<ABCRetailers.Models.Customer>
+@model IEnumerable<ABCRetailers.Models.FunctionsDtos.CustomerDto>
 @{
     ViewData["Title"] = "Customers";
 }
@@ -34,30 +33,29 @@
                         <td>
                             <code>
                                 @(
-                                                        !string.IsNullOrEmpty(customer.CustomerID) && customer.CustomerID.Length >= 8
-                                                        ? customer.CustomerID.Substring(0, 8) + "..."
-                                                        : customer.CustomerID
+                                                        !string.IsNullOrEmpty(customer.Id) && customer.Id.Length >= 8
+                                                        ? customer.Id.Substring(0, 8) + "..."
+                                                        : customer.Id
                                                         )
                         </code>
                     </td>
-
-                        <td>@customer.Name</td>
-                        <td>@customer.Surname</td>
-                        <td>@customer.Username</td>
-                        <td>@customer.Email</td>
-                        <td>@customer.ShippingAddress</td>
-                        <td>
-                            <div class="btn-group" role="group">
-                                <a asp-action="Edit" asp-route-id="@customer.RowKey" class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDelete('@customer.RowKey', '@customer.Name @customer.Surname')">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                }
+                    <td>@customer.Name</td>
+                    <td>@customer.Surname</td>
+                    <td>@customer.Username</td>
+                    <td>@customer.Email</td>
+                    <td>@customer.ShippingAddress</td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a asp-action="Edit" asp-route-id="@customer.Id" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDelete('@customer.Id', '@customer.Name @customer.Surname')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                        }
             </tbody>
         </table>
     </div>
@@ -100,6 +98,3 @@ else
         }
     </script>
 }
-
-
-

@@ -1,19 +1,18 @@
-﻿// Controllers / UploadController.cs
-using System.Linq.Expressions;
-using System.Reflection;
-using ABCRetailers.Models;
-using ABCRetailers.Services;
+﻿using ABCRetailers.Models;
+using ABCRetailers.Services.FunctionsApi;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ABCRetailers.Controllers
 {
     public class UploadController : Controller
     {
-        private readonly IAzureStorageService _storageService;
-        public UploadController(IAzureStorageService storageService)
+        private readonly IFunctionsApi _api;
+
+        public UploadController(IFunctionsApi api)
         {
-            _storageService = storageService; //added underscored
+            _api = api;
         }
+
         public IActionResult Index()
         {
             return View(new FileUploadModel());
@@ -23,39 +22,35 @@ namespace ABCRetailers.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Index(FileUploadModel model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
+                return View(model);
+
+            try
             {
-                try
+                if (model.ProofOfPayment != null && model.ProofOfPayment.Length > 0)
                 {
-                    if (model.ProofOfPayment != null && model.ProofOfPayment.Length > 0)
-                    {
-                        //Upload to blob storage
-                        var fileName = await _storageService.UploadFileAsync(model.ProofOfPayment, "payment-proofs"); //added underscore
+                    // ✅ Upload via API
+                    var fileName = await _api.UploadProofAsync(model.ProofOfPayment);
 
-                        //Also upload file to share for contracts
-                        await _storageService.UploadToFileShareAsync(model.ProofOfPayment, "contracts", "payments"); //added underscore
+                    // ✅ Optionally, if your API also supports uploading to different containers/shares:
+                    // await _api.UploadToFileShareAsync(model.ProofOfPayment, "contracts/payments");
 
-                        //clear the model for a fresh form
-                        TempData["Success"] = $"File uploaded successfully! File name: {fileName}"; // added underscore
+                    TempData["Success"] = $"File uploaded successfully! File name: {fileName}";
 
-                        //clear the model for a fresh form
-                        return View(new FileUploadModel());
-                    }
-                    else
-                    {
-                        ModelState.AddModelError("ProofOfPayment", "Please select a file to upload.");
-                    }
+                    // Clear the form
+                    return View(new FileUploadModel());
                 }
-                catch (Exception ex)
+                else
                 {
-                    ModelState.AddModelError("", $"Error uploading file: {ex.Message}");
+                    ModelState.AddModelError("ProofOfPayment", "Please select a file to upload.");
                 }
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"Error uploading file: {ex.Message}");
             }
 
             return View(model);
         }
     }
-
 }
-
-

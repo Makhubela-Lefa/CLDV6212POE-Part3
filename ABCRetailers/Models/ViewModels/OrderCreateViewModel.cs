@@ -1,5 +1,5 @@
-﻿//Models/ViewModels/OrderCreateViewModel.cs
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using ABCRetailers.Models.FunctionsDtos;
 
 namespace ABCRetailers.Models.ViewModels
 {
@@ -27,7 +27,15 @@ namespace ABCRetailers.Models.ViewModels
         [Display(Name = "Status")]
         public string Status { get; set; } = "Submitted";
 
-        public List<Customer> Customers { get; set; } = new();
-        public List<Product> Products { get; set; } = new();
+        // These are for the dropdowns
+        public List<CustomerDto> Customers { get; set; } = new();
+        public List<ProductDto> Products { get; set; } = new();
+
+        // --- ADD THESE PROPERTIES ---
+        public string Id { get; set; } = string.Empty;
+        public decimal UnitPrice { get; set; }
+        public decimal TotalPrice { get; set; }
+        public string Username { get; set; } = string.Empty;
+        public string ProductName { get; set; } = string.Empty;
     }
 }

@@ -1,9 +1,9 @@
 ﻿@using System.Globalization
-<!-- Views/Home/Index.cshtml -->
-@model ABCRetailers.Models.ViewModels.HomeViewModel
+@model ABCRetailers.Models.FunctionsDtos.HomeViewModelDto
 @{
     ViewData["Title"] = "Home";
 }
+
 <!-- Hero Section -->
 <div class="hero-section text-center mb-5">
     <h1 class="hero-heading">
@@ -84,11 +84,11 @@
                         <div class="card-body d-flex flex-column">
                             <h6 class="product-title text-center">@product.ProductName</h6>
                             <p class="product-subtitle text-center flex-grow-1">
-                                @(product.Description.Length > 50 ? product.Description.Substring(0, 50) + "..." : product.Description)
+                                @(product.Description?.Length > 50 ? product.Description.Substring(0, 50) + "..." : product.Description)
                             </p>
                             <div class="mt-auto text-center">
                                 <p class="product-price">
-                                    @product.Price.ToString("C", new System.Globalization.CultureInfo("en-ZA"))
+                                    @product.Price.ToString("C", new CultureInfo("en-ZA"))
                                 </p>
                                 <small class="text-muted">Stock: @product.StockAvailable</small>
                             </div>
