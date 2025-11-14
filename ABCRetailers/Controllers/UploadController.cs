@@ -1,9 +1,11 @@
 ﻿using ABCRetailers.Models;
 using ABCRetailers.Services.FunctionsApi;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ABCRetailers.Controllers
 {
+    [Authorize] //this line protects the entire controller
     public class UploadController : Controller
     {
         private readonly IFunctionsApi _api;

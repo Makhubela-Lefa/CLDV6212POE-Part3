@@ -1,0 +1,72 @@
+﻿@model ABCRetailers.Models.ViewModels.CartPageViewModel
+@{
+    ViewData["Title"] = "My Cart";
+}
+
+<div class="container mt-4">
+
+    <h2 class="mb-4">My Cart</h2>
+
+    @if (!Model.Items.Any())
+    {
+        <div class="alert alert-info">Your cart is empty.</div>
+        <a class="btn btn-secondary" href="/Product">Browse Products</a>
+    }
+    else
+    {
+        <form method="post" asp-action="UpdateQuantities">
+            <table class="table table-bordered table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Product</th>
+                        <th style="width: 120px;">Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Total</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @for (int i = 0; i < Model.Items.Count; i++)
+                    {
+                        <tr>
+                            <td>@Model.Items[i].ProductName</td>
+
+                            <td>
+                                <input type="number"
+                                       name="items[@i].Quantity"
+                                       value="@Model.Items[i].Quantity"
+                                       min="1"
+                                       class="form-control" />
+                                <input type="hidden" name="items[@i].ProductId" value="@Model.Items[i].ProductId" />
+                            </td>
+
+                            <td>R @Model.Items[i].UnitPrice</td>
+
+                            <td>
+                                <strong>R @(Model.Items[i].UnitPrice * Model.Items[i].Quantity)</strong>
+                            </td>
+
+                            <td>
+                                <form method="post" asp-action="Remove">
+                                    <input type="hidden" name="productId" value="@Model.Items[i].ProductId" />
+                                    <button class="btn btn-sm btn-danger">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <button type="submit" class="btn btn-primary">Update Cart</button>
+        </form>
+
+        <hr />
+
+        <form method="post" asp-action="Checkout">
+            <button class="btn btn-success btn-lg mt-3">
+                Proceed to Checkout
+            </button>
+        </form>
+    }
+</div>

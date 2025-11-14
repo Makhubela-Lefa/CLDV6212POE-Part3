@@ -1,7 +1,9 @@
 //Program.cs
 using System.Globalization;
+using ABCRetailers.Data;
 using ABCRetailers.Services;
 using ABCRetailers.Services.FunctionsApi;
+using Microsoft.EntityFrameworkCore;
 namespace ABCRetailers
 {
     public class Program
@@ -15,6 +17,9 @@ namespace ABCRetailers
 
             // Configure HTTP client for Azure Functions API
             //builder.Services.AddScoped<IAzureStorageService, AzureStorageService>();
+
+            builder.Services.AddDbContext<AuthDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("AuthConnection")));
 
             builder.Services.AddHttpClient("Functions", (sp, client) =>
             {

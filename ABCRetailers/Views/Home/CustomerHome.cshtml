@@ -1,0 +1,112 @@
+﻿@using System.Globalization
+@model IEnumerable<ABCRetailers.Models.FunctionsDtos.ProductDto>
+@{
+    ViewData["Title"] = "Customer Dashboard";
+}
+
+<!-- Welcome Banner -->
+<div class="hero-section text-center mb-5">
+    <h1 class="hero-heading text-primary">
+        Welcome, @ViewBag.Username!
+    </h1>
+    <p class="hero-subtitle">
+        Explore the store and easily manage your cart.
+    </p>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-5 text-center">
+    <div class="col-md-4 mb-3">
+        <a asp-controller="Product" asp-action="Index" class="action-card btn-lg w-100 h-100 d-flex flex-column justify-content-center">
+            <i class="fas fa-box-open fa-2x mb-2 text-success"></i>
+            <span>Browse Products</span>
+        </a>
+    </div>
+    <div class="col-md-4 mb-3">
+        <a asp-controller="Cart" asp-action="Index" class="action-card btn-lg w-100 h-100 d-flex flex-column justify-content-center">
+            <i class="fas fa-shopping-cart fa-2x mb-2 text-warning"></i>
+            <span>My Cart</span>
+        </a>
+    </div>
+    <div class="col-md-4 mb-3">
+        <a asp-controller="Order" asp-action="Index" class="action-card btn-lg w-100 h-100 d-flex flex-column justify-content-center">
+            <i class="fas fa-list fa-2x mb-2 text-primary"></i>
+            <span>My Orders</span>
+        </a>
+    </div>
+</div>
+
+<!-- Featured Products -->
+@if (ViewBag.FeaturedProducts != null && ViewBag.FeaturedProducts.Any())
+{
+    <div class="featured-products-section mt-4">
+        <h2 class="mb-4 text-center">Featured Products</h2>
+
+        <div class="row justify-content-center">
+            @foreach (var product in ViewBag.FeaturedProducts)
+            {
+                <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-4">
+                    <div class="product-card h-100">
+                        @if (!string.IsNullOrEmpty(product.ImageUrl))
+                        {
+                            <img src="@product.ImageUrl" class="card-img-top" alt="@product.ProductName"
+                                 style="height: 150px; object-fit: cover;">
+                        }
+                        else
+                        {
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
+                                 style="height: 150px;">
+                                <i class="fas fa-image fa-3x text-muted"></i>
+                            </div>
+                        }
+                        <div class="card-body text-center">
+                            <h6>@product.ProductName</h6>
+                            <p>@product.Price.ToString("C", new CultureInfo("en-ZA"))</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<!-- Product Grid -->
+<div class="featured-products-section mt-5">
+    <h2 class="mb-4 text-center">Shop Popular Items</h2>
+
+    @if (Model.Any())
+    {
+        <div class="row justify-content-center">
+            @foreach (var product in Model)
+            {
+                <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-4">
+                    <div class="product-card h-100">
+                        @if (!string.IsNullOrEmpty(product.ImageUrl))
+                        {
+                            <img src="@product.ImageUrl" class="card-img-top" alt="@product.ProductName"
+                                 style="height: 150px; object-fit: cover;">
+                        }
+                        else
+                        {
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
+                                 style="height: 150px;">
+                                <i class="fas fa-image fa-3x text-muted"></i>
+                            </div>
+                        }
+                        <div class="card-body text-center">
+                            <h6>@product.ProductName</h6>
+                            <p class="product-price">@product.Price.ToString("C", new CultureInfo("en-ZA"))</p>
+                            <a asp-controller="Cart" asp-action="Add" asp-route-productId="@product.Id" class="btn btn-sm btn-primary">
+                                <i class="fas fa-cart-plus"></i> Add to Cart
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info text-center">No products found.</div>
+    }
+</div>

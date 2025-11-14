@@ -1,5 +1,4 @@
 ﻿@using System.Globalization
-<!-- Views/Order/Create.cshtml -->
 @model ABCRetailers.Models.ViewModels.OrderCreateViewModel
 @{
     ViewData["Title"] = "Create Order";
@@ -12,17 +11,24 @@
         <form asp-action="Create" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-            <div class="form-group mb-3">
-                <label asp-for="CustomerId" class="form-label">Select Customer</label>
-                <select asp-for="CustomerId" class="form-select" id="customerSelect">
-                    <option value="">-- Select Customer --</option>
-                    @foreach (var customer in Model.Customers)
-                    {
-                        <option value="@customer.Id">@customer.Name @customer.Surname (@customer.Username)</option>
-                    }
-                </select>
-                <span asp-validation-for="CustomerId" class="text-danger"></span>
-            </div>
+            @if (User.IsInRole("Admin"))
+            {
+                <div class="form-group mb-3">
+                    <label asp-for="CustomerId" class="form-label">Select Customer</label>
+                    <select asp-for="CustomerId" class="form-select" id="customerSelect">
+                        <option value="">-- Select Customer --</option>
+                        @foreach (var customer in Model.Customers)
+                        {
+                            <option value="@customer.Id">@customer.Name @customer.Surname (@customer.Username)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CustomerId" class="text-danger"></span>
+                </div>
+            }
+            else
+            {
+                <input type="hidden" asp-for="CustomerId" value="@User.FindFirst("UserId")?.Value" />
+            }
 
             <div class="form-group mb-3">
                 <label asp-for="ProductId" class="form-label">Select Product</label>
@@ -104,64 +110,43 @@
         </div>
     </div>
 </div>
+
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-    <script>
-        let currentPrice = 0;
-        let availableStock = 0;
-        let selectedProductName = '';
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script type="text/javascript">
+        let currentPrice = 0, availableStock = 0, selectedProductName = '';
 
-        document.getElementById('productSelect').addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            if (selectedOption.value) {
-                currentPrice = parseFloat(selectedOption.dataset.price);
-                availableStock = parseInt(selectedOption.dataset.stock);
-                selectedProductName = selectedOption.text.split(' - ')[0];
+        const productSelect = document.getElementById('productSelect');
+        const quantityInput = document.getElementById('quantityInput');
+        const unitPriceDisplay = document.getElementById('unitPriceDisplay');
+        const totalPriceDisplay = document.getElementById('totalPriceDisplay');
+        const stockWarning = document.getElementById('stockWarning');
+        const submitBtn = document.getElementById('submitBtn');
+        const orderSummary = document.getElementById('orderSummary');
 
-                document.getElementById('unitPriceDisplay').value = '$' + currentPrice.toFixed(2);
-                document.getElementById('quantityInput').max = availableStock;
+        function resetSummary() {
+            unitPriceDisplay.value = '';
+            totalPriceDisplay.value = '';
+            orderSummary.innerHTML = '<p class="text-muted">Select customer and product to see order summary</p>';
+        }
 
-                const currentQuantity = parseInt(document.getElementById('quantityInput').value) || 0;
-                if (currentQuantity > 0) {
-                    updateTotalPrice();
-                }
-
-                updateOrderSummary();
-                validateQuantity();
-            } else {
-                currentPrice = 0;
-                availableStock = 0;
-                selectedProductName = '';
-                document.getElementById('unitPriceDisplay').value = '';
-                document.getElementById('totalPriceDisplay').value = '';
-                updateOrderSummary();
-            }
-        });
-
-        document.getElementById('quantityInput').addEventListener('input', function() {
-            validateQuantity();
-            updateTotalPrice();
-            updateOrderSummary();
-        });
-
-        document.getElementById('customerSelect').addEventListener('change', updateOrderSummary);
+        function updateTotalPrice() {
+            const qty = parseInt(quantityInput.value) || 0;
+            totalPriceDisplay.value = (currentPrice && qty) ? 'R' + (currentPrice * qty).toFixed(2) : 'R0.00';
+        }
 
         function validateQuantity() {
-            const quantity = parseInt(document.getElementById('quantityInput').value) || 0;
-            const stockWarning = document.getElementById('stockWarning');
-            const submitBtn = document.getElementById('submitBtn');
+            const qty = parseInt(quantityInput.value) || 0;
 
-            if (quantity > availableStock && availableStock > 0) {
-                stockWarning.textContent = `⚠️ Warning: Only ${availableStock} items in stock!`;
-                stockWarning.style.display = 'block';
+            if (qty > availableStock && availableStock > 0) {
+                stockWarning.textContent = `⚠️ Only ${availableStock} items in stock!`;
                 stockWarning.className = 'form-text text-danger';
-                submitBtn.disabled = true;
-            } else if (quantity > 0 && quantity <= availableStock) {
-                stockWarning.textContent = `✅ ${quantity} items available`;
                 stockWarning.style.display = 'block';
+                submitBtn.disabled = true;
+            } else if (qty > 0 && qty <= availableStock) {
+                stockWarning.textContent = `✅ ${qty} items available`;
                 stockWarning.className = 'form-text text-success';
+                stockWarning.style.display = 'block';
                 submitBtn.disabled = false;
             } else {
                 stockWarning.style.display = 'none';
@@ -169,74 +154,80 @@
             }
         }
 
-        function updateTotalPrice() {
-            const quantity = parseInt(document.getElementById('quantityInput').value) || 0;
-
-            if (currentPrice > 0 && quantity > 0) {
-                const total = currentPrice * quantity;
-                document.getElementById('totalPriceDisplay').value = 'R' + total.toFixed(2);
-                document.getElementById('totalPriceDisplay').style.fontWeight = 'bold';
-                document.getElementById('totalPriceDisplay').style.color = '#28a745';
-            } else {
-                document.getElementById('totalPriceDisplay').value = 'R0.00';
-                document.getElementById('totalPriceDisplay').style.fontWeight = 'normal';
-                document.getElementById('totalPriceDisplay').style.color = '#6c757d';
-            }
-        }
-
         function updateOrderSummary() {
-            const customerSelect = document.getElementById('customerSelect');
-            const productSelect = document.getElementById('productSelect');
-            const quantity = parseInt(document.getElementById('quantityInput').value) || 0;
-            const summaryDiv = document.getElementById('orderSummary');
-
-            if (customerSelect.value && productSelect.value && quantity > 0) {
-                const customerText = customerSelect.options[customerSelect.selectedIndex].text;
-                const total = currentPrice * quantity;
-
-                summaryDiv.innerHTML = `
-                    <div class="alert alert-info">
-                        <h6><i class="fas fa-shopping-cart"></i> Order Preview</h6>
-                        <p><strong>Customer:</strong><br/><small>${customerText}</small></p>
-                        <p><strong>Product:</strong><br/><small>${selectedProductName}</small></p>
-                        <hr>
-                        <div class="row">
-                            <div class="col-6"><strong>Quantity:</strong></div>
-                            <div class="col-6 text-end">${quantity}</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-6"><strong>Unit Price:</strong></div>
-                            <div class="col-6 text-end">R${currentPrice.toFixed(2)}</div>
-                        </div>
-                        <hr>
-                        <div class="row">
-                            <div class="col-6"><strong>Total:</strong></div>
-                            <div class="col-6 text-end"><span class="text-success h5">R{total.toFixed(2)}</span></div>
-                        </div>
-                    </div>
-                `;
-            } else if (customerSelect.value && productSelect.value) {
-                summaryDiv.innerHTML = `
-                    <div class="alert alert-warning">
-                        <h6><i class="fas fa-exclamation-triangle"></i> Almost Ready</h6>
-                        <p>Selected product: <strong>${selectedProductName}</strong></p>
-                        <p>Unit price: <strong>R${currentPrice.toFixed(2)}</strong></p>
-                        <p class="mb-0"><small>Enter quantity to complete order</small></p>
-                    </div>
-                `;
-            } else {
-                summaryDiv.innerHTML = `
-                    <div class="alert alert-secondary">
-                        <h6><i class="fas fa-clipboard-list"></i> Order Summary</h6>
-                        <p class="text-muted mb-0">Select customer and product to see order preview</p>
-                    </div>
-                `;
+            let customerName = '@User.Identity.Name';
+            @if (User.IsInRole("Admin"))
+            {
+                <text>
+                const customerSelect = document.getElementById('customerSelect');
+                if (customerSelect && customerSelect.selectedOptions.length > 0) {
+                    customerName = customerSelect.selectedOptions[0].text;
+                }
+                </text>
             }
+
+            const qty = parseInt(quantityInput.value) || 0;
+
+            if (!selectedProductName) {
+                resetSummary();
+                return;
+            }
+
+            orderSummary.innerHTML = `
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-shopping-cart"></i> Order Preview</h6>
+                    <p><strong>Customer:</strong><br/><small>${customerName}</small></p>
+                    <p><strong>Product:</strong><br/><small>${selectedProductName}</small></p>
+                    <hr>
+                    <div class="row">
+                        <div class="col-6"><strong>Quantity:</strong></div>
+                        <div class="col-6 text-end">${qty}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6"><strong>Unit Price:</strong></div>
+                        <div class="col-6 text-end">R${currentPrice.toFixed(2)}</div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-6"><strong>Total:</strong></div>
+                        <div class="col-6 text-end"><span class="text-success h5">R${(currentPrice*qty).toFixed(2)}</span></div>
+                    </div>
+                </div>
+            `;
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        productSelect.addEventListener('change', function () {
+            const opt = this.options[this.selectedIndex];
+            if (!opt.value) { resetSummary(); return; }
+
+            currentPrice = parseFloat(opt.dataset.price);
+            availableStock = parseInt(opt.dataset.stock);
+            selectedProductName = opt.text.split(' - ')[0];
+
+            unitPriceDisplay.value = 'R' + currentPrice.toFixed(2);
+            quantityInput.max = availableStock;
+
+            updateTotalPrice();
+            updateOrderSummary();
+            validateQuantity();
+        });
+
+        quantityInput.addEventListener('input', function () {
+            validateQuantity();
+            updateTotalPrice();
             updateOrderSummary();
         });
+
+        @if (User.IsInRole("Admin"))
+        {
+            <text>
+            const customerSelect = document.getElementById('customerSelect');
+            if (customerSelect) {
+                customerSelect.addEventListener('change', updateOrderSummary);
+            }
+            </text>
+        }
+
+        document.addEventListener('DOMContentLoaded', updateOrderSummary);
     </script>
 }
-

@@ -1,0 +1,26 @@
+﻿@* /Views/Login/AccessDenied.cshtml *@
+@{
+    ViewData["Title"] = "Access Denied";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-lg border-0 text-center">
+                <div class="card-header bg-danger text-white">
+                    <h4><i class="fas fa-ban"></i> Access Denied</h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead mb-3">You do not have permission to access this page.</p>
+                    <p class="text-muted mb-4">If you believe this is a mistake, please contact the system administrator.</p>
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
+                        <i class="fas fa-home"></i> Go to Home
+                    </a>
+                </div>
+                <div class="card-footer text-muted small">
+                    &copy; 2025 - ABC Retailers
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

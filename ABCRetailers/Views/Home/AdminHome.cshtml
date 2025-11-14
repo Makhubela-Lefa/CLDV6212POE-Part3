@@ -1,0 +1,63 @@
+﻿@model ABCRetailers.Models.FunctionsDtos.HomeViewModelDto
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<!-- Admin Dashboard Header -->
+<div class="hero-section text-center mb-5">
+    <h1 class="hero-heading text-danger">
+        <i class="fas fa-user-shield"></i> Admin Dashboard
+    </h1>
+    <p class="hero-subtitle">
+        Welcome, Admin! Manage your customers, products, and orders all in one place.
+    </p>
+</div>
+
+<!-- Admin Overview Cards -->
+<div class="row mb-5 text-center">
+    <div class="col-md-4 mb-3">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                <h5>Customers</h5>
+                <p class="h4">@Model.CustomerCount</p>
+                <a asp-controller="Customer" asp-action="Index" class="btn btn-outline-primary btn-sm">
+                    Manage Customers
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <i class="fas fa-boxes fa-2x text-success mb-2"></i>
+                <h5>Products</h5>
+                <p class="h4">@Model.ProductCount</p>
+                <a asp-controller="Product" asp-action="Index" class="btn btn-outline-success btn-sm">
+                    Manage Products
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <i class="fas fa-shopping-cart fa-2x text-warning mb-2"></i>
+                <h5>Orders</h5>
+                <p class="h4">@Model.OrderCount</p>
+                <a asp-controller="Order" asp-action="Index" class="btn btn-outline-warning btn-sm">
+                    View Orders
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Optional Note -->
+<div class="text-center mt-4">
+    <p class="text-muted">
+        Use the links above to manage the store efficiently.
+    </p>
+</div>

@@ -1,18 +1,17 @@
 ﻿using ABCRetailers.Models;
 using ABCRetailers.Models.FunctionsDtos;
 using ABCRetailers.Services.FunctionsApi;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ABCRetailers.Controllers
 {
+    [Authorize] //this line protects the entire controller
     public class CustomerController : Controller
     {
         private readonly IFunctionsApi _api;
 
-        public CustomerController(IFunctionsApi api)
-        {
-            _api = api;
-        }
+        public CustomerController(IFunctionsApi api) => _api = api; 
 
         // ---------------- Index ----------------
         public async Task<IActionResult> Index()

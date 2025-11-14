@@ -1,9 +1,11 @@
 ﻿using ABCRetailers.Models.FunctionsDtos;
 using ABCRetailers.Services.FunctionsApi;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ABCRetailers.Controllers
 {
+    [Authorize] //protects all actions in this controller
     public class ProductController : Controller
     {
         private readonly IFunctionsApi _api;
@@ -15,22 +17,24 @@ namespace ABCRetailers.Controllers
             _logger = logger;
         }
 
+        //both admin and customer can view products
         // ----------------- Index -----------------
+        [Authorize(Roles ="Admin,Customer")]
         public async Task<IActionResult> Index()
         {
             var products = await _api.GetProductsAsync(); // Returns List<ProductDto>
             return View(products);
         }
 
+        //only admin can create a product
         // ----------------- Create (GET) -----------------
-        public IActionResult Create()
-        {
-            return View();
-        }
+        [Authorize(Roles ="Admin")]
+        public IActionResult Create() => View();
 
+        //only admin can post a product
         // ----------------- Create (POST) -----------------
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken]
+        [Authorize(Roles ="Admin")]
         public async Task<IActionResult> Create(CreateProductDto dto, IFormFile? imageFile)
         {
             if (!ModelState.IsValid)
@@ -58,7 +62,9 @@ namespace ABCRetailers.Controllers
             }
         }
 
+        //only admin can edit a product
         // ----------------- Edit (GET) -----------------
+        [Authorize(Roles ="Admin")]
         public async Task<IActionResult> Edit(string id)
         {
             if (string.IsNullOrEmpty(id)) return NotFound();
@@ -80,9 +86,10 @@ namespace ABCRetailers.Controllers
             return View(updateDto);
         }
 
+        //only an admin can POST an edit
         // ----------------- Edit (POST) -----------------
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken]
+        [Authorize(Roles ="Admin")]
         public async Task<IActionResult> Edit(UpdateProductDto updateDto, IFormFile? imageFile)
         {
             if (!ModelState.IsValid)
@@ -112,13 +119,25 @@ namespace ABCRetailers.Controllers
             }
         }
 
+        //only admin can delete a product
         // ----------------- Delete -----------------
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(string id)
         {
             try
             {
+                // 1. Check if product exists
+                var product = await _api.GetProductAsync(id);
+                if (product == null)
+                {
+                    TempData["Error"] = "Product not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // 2. Proceed with delete
                 await _api.DeleteProductAsync(id);
+
                 TempData["Success"] = "Product deleted successfully!";
             }
             catch (Exception ex)
@@ -128,5 +147,6 @@ namespace ABCRetailers.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
     }
 }
