@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using ABCRetailers.Data;
 using ABCRetailers.Models.FunctionsDtos;
 using ABCRetailers.Models.ViewModels;
 using ABCRetailers.Services.FunctionsApi;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ABCRetailers.Controllers
 {
@@ -13,10 +15,12 @@ namespace ABCRetailers.Controllers
     public class OrderController : Controller
     {
         private readonly IFunctionsApi _api;
+        private readonly AuthDbContext _authDbContext;
 
-        public OrderController(IFunctionsApi api)
+        public OrderController(IFunctionsApi api, AuthDbContext authDbContext)
         {
             _api = api;
+            _authDbContext = authDbContext;
         }
 
         // ========================================================
@@ -146,10 +150,16 @@ namespace ABCRetailers.Controllers
             if (order == null) return NotFound();
 
             var username = User.Identity?.Name;
-            if (order.Username != username) return Forbid();
+            if (string.IsNullOrEmpty(username))
+                return RedirectToAction("Index", "Login");
+
+            // Compare by Username instead of CustomerId
+            if (order.Username != username)
+                return Forbid();
 
             return View(order);
         }
+
 
         [Authorize(Roles = "Customer")]
         public async Task<IActionResult> Create()
@@ -205,18 +215,17 @@ namespace ABCRetailers.Controllers
         {
             var username = User.Identity?.Name;
             if (string.IsNullOrEmpty(username))
-            {
                 return RedirectToAction("Index", "Login");
-            }
 
             var allOrders = await _api.GetOrdersAsync();
+
+            // Filter orders by username
             var customerOrders = allOrders
                 .Where(o => o.Username == username)
                 .ToList();
 
             return View("MyOrders", customerOrders);
         }
-
 
         // ========================================================
         // UTILITIES

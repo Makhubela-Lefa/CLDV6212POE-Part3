@@ -10,12 +10,21 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="fas fa-box"></i> Products</h2>
 
-    @if (isAdmin)
-    {
-        <a asp-action="Create" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Add New Product
-        </a>
-    }
+    <div>
+        @if (isAdmin)
+        {
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add New Product
+            </a>
+        }
+
+        @if (isCustomer)
+        {
+            <a asp-controller="Cart" asp-action="Index" class="btn btn-warning ms-2">
+                <i class="fas fa-shopping-cart"></i> View My Cart
+            </a>
+        }
+    </div>
 </div>
 
 @if (Model.Any())
@@ -48,26 +57,14 @@
                                     <i class="fas fa-image text-muted"></i>
                                 </div>
                             }
-                    </td>
-                    <td>
-                        <code>
-                            @(
-                                                    !string.IsNullOrEmpty(product.Id) && product.Id.Length >= 8
-                                                    ? product.Id.Substring(0, 8) + "..."
-                                                    : product.Id
-                                                    )
-                        </code>
-                    </td>
-                    <td>@product.ProductName</td>
-                    <td>
-                        @(
-                                            !string.IsNullOrEmpty(product.Description) && product.Description.Length > 50
-                                            ? product.Description.Substring(0, 50) + "..."
-                                            : product.Description
-                                            )
-                    </td>
-                    <td>
-                    @if (product.Price > 0)
+                        </td>
+                        <td>
+                            <code>@(product.Id?.Length >= 8 ? product.Id.Substring(0, 8) + "..." : product.Id)</code>
+                        </td>
+                        <td>@product.ProductName</td>
+                        <td>@(product.Description?.Length > 50 ? product.Description.Substring(0, 50) + "..." : product.Description)</td>
+                        <td>
+                            @if (product.Price > 0)
                             {
                                 <strong class="text-success">@product.Price.ToString("C", new CultureInfo("en-ZA"))</strong>
                             }
@@ -97,15 +94,22 @@
                                 @* Customer actions *@
                                 @if (isCustomer)
                                 {
-                                    if (product.StockAvailable > 0)
+                                    @if (product.StockAvailable > 0)
                                     {
-                                        <button class="btn btn-sm btn-outline-success" onclick="addToCart('@product.Id')" title="Add to Cart">Add to Cart</button>
+                                        <form method="get" asp-controller="Cart" asp-action="Add" class="d-inline">
+                                            <input type="hidden" name="productId" value="@product.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Add to Cart">Add to Cart</button>
+                                        </form>
                                     }
                                     else
                                     {
                                         <button class="btn btn-sm btn-outline-secondary" disabled>Out of Stock</button>
                                     }
-                                    <button class="btn btn-sm btn-outline-danger" onclick="removeFromCart('@product.Id')" title="Remove from Cart">Remove from Cart</button>
+
+                                    <form method="post" asp-controller="Cart" asp-action="Remove" class="d-inline">
+                                        <input type="hidden" name="productId" value="@product.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove from Cart">Remove from Cart</button>
+                                    </form>
                                 }
                             </div>
                         </td>
@@ -122,7 +126,7 @@ else
         @if (isAdmin)
         {
             <a asp-action="Create" class="alert-link">Add your first product</a>
-            }
+        }
     </div>
 }
 
@@ -153,14 +157,6 @@ else
             document.getElementById('productName').textContent = productName;
             document.getElementById('deleteForm').action = '/Product/Delete/' + productId;
             new bootstrap.Modal(document.getElementById('deleteModal')).show();
-        }
-
-        function addToCart(productId) {
-            alert('Added product ' + productId + ' to cart! (Implement API call)');
-        }
-
-        function removeFromCart(productId) {
-            alert('Removed product ' + productId + ' from cart! (Implement API call)');
         }
     </script>
 }
