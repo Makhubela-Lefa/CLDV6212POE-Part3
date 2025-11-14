@@ -11,6 +11,7 @@ namespace ABCRetailers.Services.FunctionsApi
         Task<List<CustomerDto>> GetCustomersAsync();
         Task<CustomerDto?> GetCustomerAsync(string id);
         Task<string?> CreateCustomerAsync(CreateCustomerDto dto);
+        Task<string?> GetCustomerByUsernameAsync(string Username); //add
         Task UpdateCustomerAsync(string id, UpdateCustomerDto dto);
         Task DeleteCustomerAsync(string id);
 
@@ -30,6 +31,8 @@ namespace ABCRetailers.Services.FunctionsApi
 
         // Uploads
         Task<string?> UploadProofAsync(IFormFile file, string? orderId = null, string? customerName = null);
+        Task<string?> UploadFileAsync(string relativeUrl, Stream fileStream, string fileName);
+        Task<string?> UploadProductImageAsync(IFormFile file, string productId);
 
     }
 }

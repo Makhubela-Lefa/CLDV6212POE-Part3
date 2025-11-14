@@ -200,6 +200,24 @@ namespace ABCRetailers.Controllers
             return View(model);
         }
 
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> MyOrders()
+        {
+            var username = User.Identity?.Name;
+            if (string.IsNullOrEmpty(username))
+            {
+                return RedirectToAction("Index", "Login");
+            }
+
+            var allOrders = await _api.GetOrdersAsync();
+            var customerOrders = allOrders
+                .Where(o => o.Username == username)
+                .ToList();
+
+            return View("MyOrders", customerOrders);
+        }
+
+
         // ========================================================
         // UTILITIES
         // ========================================================

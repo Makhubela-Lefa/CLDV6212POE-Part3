@@ -34,7 +34,7 @@ namespace ABCRetailers.Controllers
         //only admin can post a product
         // ----------------- Create (POST) -----------------
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles ="Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(CreateProductDto dto, IFormFile? imageFile)
         {
             if (!ModelState.IsValid)
@@ -42,13 +42,28 @@ namespace ABCRetailers.Controllers
 
             try
             {
-                // Create product via API
+                // 1. Create product
                 var productId = await _api.CreateProductAsync(dto);
 
-                // Upload image if provided
+                // 2. Upload image if provided
                 if (imageFile != null && imageFile.Length > 0)
                 {
-                    await _api.UploadProofAsync(imageFile, productId, dto.ProductName);
+                    var imageUrl = await _api.UploadProductImageAsync(imageFile, productId);
+
+                    if (!string.IsNullOrEmpty(imageUrl))
+                    {
+                        // 3. Update product with image URL
+                        var updateDto = new UpdateProductDto
+                        {
+                            Id = productId,
+                            ProductName = dto.ProductName,
+                            Description = dto.Description,
+                            Price = dto.Price,
+                            StockAvailable = dto.StockAvailable,
+                            ImageUrl = imageUrl
+                        };
+                        await _api.UpdateProductAsync(productId, updateDto);
+                    }
                 }
 
                 TempData["Success"] = $"Product '{dto.ProductName}' created successfully!";
@@ -89,7 +104,7 @@ namespace ABCRetailers.Controllers
         //only an admin can POST an edit
         // ----------------- Edit (POST) -----------------
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles ="Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(UpdateProductDto updateDto, IFormFile? imageFile)
         {
             if (!ModelState.IsValid)
@@ -97,14 +112,13 @@ namespace ABCRetailers.Controllers
 
             try
             {
-                // Upload new image if provided
-                string? imageUrl = updateDto.ImageUrl;
+                // Keep existing image unless a new one is uploaded
                 if (imageFile != null && imageFile.Length > 0)
                 {
-                    imageUrl = await _api.UploadProofAsync(imageFile, updateDto.Id, updateDto.ProductName);
+                    var imageUrl = await _api.UploadProductImageAsync(imageFile, updateDto.Id);
+                    if (!string.IsNullOrEmpty(imageUrl))
+                        updateDto.ImageUrl = imageUrl;
                 }
-
-                updateDto.ImageUrl = imageUrl;
 
                 await _api.UpdateProductAsync(updateDto.Id, updateDto);
 
@@ -118,6 +132,7 @@ namespace ABCRetailers.Controllers
                 return View(updateDto);
             }
         }
+
 
         //only admin can delete a product
         // ----------------- Delete -----------------

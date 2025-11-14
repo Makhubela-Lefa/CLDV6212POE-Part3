@@ -108,6 +108,7 @@ namespace ABCRetailers.Controllers
         [AllowAnonymous]
         public IActionResult Privacy()
         {
+            ViewData["EffectiveDate"] = DateTime.Now; 
             return View();
         }
 

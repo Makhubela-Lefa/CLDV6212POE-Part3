@@ -88,13 +88,13 @@ namespace ABCRetailers.Controllers
 
                 // 4. sign in
                 await HttpContext.SignInAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme,
-                    principal,
-                    new AuthenticationProperties
-                    {
-                        IsPersistent = true,
-                        ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(60)
-                    });
+                     "ABCAuth",
+                     principal,
+                     new AuthenticationProperties
+                     {
+                         IsPersistent = true,
+                         ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(60)
+                     });
 
                 // 5. session data
                 HttpContext.Session.SetString("Username", user.Username);
@@ -189,7 +189,7 @@ namespace ABCRetailers.Controllers
         [Authorize]
         public async Task<IActionResult> Logout()
         {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignOutAsync("ABCAuth");
             HttpContext.Session.Clear();
             return RedirectToAction("Index", "Home");
         }

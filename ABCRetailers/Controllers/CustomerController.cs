@@ -11,14 +11,30 @@ namespace ABCRetailers.Controllers
     {
         private readonly IFunctionsApi _api;
 
-        public CustomerController(IFunctionsApi api) => _api = api; 
+        public CustomerController(IFunctionsApi api) => _api = api;
 
         // ---------------- Index ----------------
         public async Task<IActionResult> Index()
         {
-            var customers = await _api.GetCustomersAsync() ?? new List<CustomerDto>();
-            return View(customers);
+            if (User.IsInRole("Admin"))
+            {
+                // Admin: show all customers
+                var customers = await _api.GetCustomersAsync() ?? new List<CustomerDto>();
+                return View("Index", customers); // returns Views/Customer/Index.cshtml
+            }
+            else
+            {
+                // Normal customer: show home with products
+                ViewBag.Username = User.Identity?.Name;
+
+                var products = await _api.GetProductsAsync() ?? new List<ProductDto>();
+                var featured = products.Where(p => p.Price > 5000).Take(6).ToList();
+                ViewBag.FeaturedProducts = featured;
+
+                return View("CustomerHome", products);
+            }
         }
+
 
         // ---------------- Create (GET) ----------------
         public IActionResult Create()

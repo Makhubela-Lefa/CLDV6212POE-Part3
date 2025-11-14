@@ -78,7 +78,7 @@
 
                             @* Logout link *@
                             <li class="nav-item">
-                                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                <form asp-controller="Login" asp-action="Logout" method="post" class="d-inline">
                                     <button type="submit" class="nav-link btn btn-link text-decoration-none">
                                         <i class="fas fa-sign-out-alt"></i> Logout
                                     </button>
@@ -89,12 +89,12 @@
                         {
                             @* Guest users *@
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Login">
+                                <a class="nav-link" asp-area="" asp-controller="Login" asp-action="Index">
                                     <i class="fas fa-sign-in-alt"></i> Login
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Register">
+                                <a class="nav-link" asp-area="" asp-controller="Login" asp-action="Register">
                                     <i class="fas fa-user-plus"></i> Register
                                 </a>
                             </li>

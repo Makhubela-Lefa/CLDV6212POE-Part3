@@ -73,6 +73,14 @@ namespace ABCRetailers.Services.FunctionsApi
                 return null;
             }
         }
+        public async Task<string?> GetCustomerByUsernameAsync(string username)
+        {
+            var customers = await GetCustomersAsync(); // get all customers
+            var customer = customers.FirstOrDefault(c =>
+                c.Username?.Equals(username, StringComparison.OrdinalIgnoreCase) == true);
+
+            return customer?.Id; // return ID as string?, not the object
+        }
 
         public async Task UpdateCustomerAsync(string id, UpdateCustomerDto dto)
         {
@@ -317,6 +325,36 @@ namespace ABCRetailers.Services.FunctionsApi
                 return null;
             }
         }
+        public async Task<string?> UploadProductImageAsync(IFormFile file, string productId)
+        {
+            try
+            {
+                using var content = new MultipartFormDataContent();
+                await using var stream = file.OpenReadStream();
+
+                var fileContent = new StreamContent(stream);
+                fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+
+                content.Add(fileContent, "file", file.FileName);
+                content.Add(new StringContent(productId), "productId");
+
+                // ✅ Fixed endpoint URL
+                var response = await _client.PostAsync("products/upload-image", content);
+                response.EnsureSuccessStatusCode();
+
+                var result = await response.Content.ReadFromJsonAsync<Dictionary<string, string?>>();
+                if (result != null && result.TryGetValue("url", out var url))
+                    return url;
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "UploadProductImageAsync failed for {FileName}", file.FileName);
+                return null;
+            }
+        }
+
 
     }
 }
